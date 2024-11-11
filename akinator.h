@@ -9,14 +9,19 @@ struct Tree
 
 struct Node
 {
-    char* data; //
+    const char* data; //
     struct Node* left;
     struct Node* right;
     struct Node* parent;
 };
 
-Node* new_node (char* data);
-Node* insert_node (struct Node* node, char* data);
+Node* new_node    (const char* data);
+Node* guesse_word (struct Node* node);
+// Node* insert_new_node (const char* data);
+Node* insert_new_node (struct Node* node);
+// Node* insert_new_node (struct Node* node);
+Node* insert_node (struct Node* node);
+
 void preorderTraversal(struct Node* node);
 void inorderTraversal(struct Node* node); 
 
