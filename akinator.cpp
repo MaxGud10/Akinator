@@ -36,40 +36,8 @@ int main (void)
     new_node_3->right = new_node_5;
 
     guesse_word (new_node_1);
-    // guesse_word (new_node_1);
 
-    // insert_node (new_node_5, "Chubarov");
-    // insert_node (new_node_4, "LOH");
-
-    /*===================================================================================================================================*/
-    // Node *new_node_12 = new_node (12);
-
-    // Node *new_node_5 = new_node (5);
-
-    // Node *new_node_15 = new_node (15);
-
-    // Node *new_node_17 = new_node (17);
-
-    // Node *new_node_70 = new_node (70);
-
-    // Node *new_node_60 = new_node (60);
-
-    // new_node_50->left  = new_node_12;
-    // new_node_50->right = new_node_70;
-
-    // new_node_12->left  = new_node_5;
-    // new_node_12->right = new_node_15;
-
-    // new_node_15->right = new_node_17;
-
-    // new_node_70->left  = new_node_60;    
-
-    // insert_node (new_node_5, 10);
-
-    // insert_node (new_node_5, 1);
-
-
-    // insert_node (new_node_70, 100);
+    write_data (new_node_1);
 
     graph_dump (new_node_1, NULL);
 
@@ -113,7 +81,7 @@ Node* guesse_word (struct Node* node)
 
             else 
             {
-                printf ("(%d) Do you want to insert a new object %s? (yes/no)\n", __LINE__, node->data);
+                printf (" (%d) Do you want to insert a new object %s? (yes/no)\n", node->left, __LINE__, node->data);
 
                 scanf ("%s", data);
                 printf ("\n1_scanf\n");
@@ -183,6 +151,42 @@ Node* insert_new_node (struct Node* node) // Node* insert_new_node (struct Node*
     node->right = new_node (data);
 
     //return node;
+    return 0;
+}
+
+int write_data (struct Node* node)
+{
+    FILE* baza = fopen ("baza.txt", "w");
+    if (baza == NULL)
+    {
+        printf ("\n%s(): ERROR open baza.txt\n", __func__);
+    }
+
+    //printf ()
+    print_preorder (node, baza, 0);
+
+    fclose (baza);
+
+    return 0;
+}
+
+int print_preorder (struct Node* node, FILE* baza, int level)
+{
+    assert (node);
+
+    fprintf (baza, "%s{ ", level * 4, "");
+
+    fprintf (baza, "\"%s\" ", node->data);
+
+    if (node->left)
+        fprintf(baza, "\n");
+
+    if (node->left) print_preorder (node->left, baza, level + 1);
+
+    if (node->right) print_preorder (node->right, baza, level + 1);
+
+    fprintf (baza, "%*s} \n", node->left ? level * 4 : 0, "");
+
     return 0;
 }
 
