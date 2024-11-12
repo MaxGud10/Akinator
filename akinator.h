@@ -29,7 +29,7 @@ void preorder  (struct Node* node, FILE* graph_dump, struct Node* selection);
 void inorder   (struct Node* node);
 void postorder (struct Node* node);  
 
-int write_data     (struct Node* node);
-int print_preorder (struct Node* node, FILE* ddd, int level);
+int write_data             (struct Node* node);
+int print_preorder_in_file (struct Node* node, FILE* ddd, int level);
 
 int graph_dump (struct Node* node, struct Node* selection);

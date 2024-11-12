@@ -1,0 +1,7 @@
+{ "animal?" 
+    { "poltorashka" } 
+    { "conducts a discussion" 
+        { "Burtsev" } 
+        { "leads the physics department" } 
+    } 
+} 

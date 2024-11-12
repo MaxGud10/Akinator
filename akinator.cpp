@@ -2,22 +2,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "log.h"
 #include "akinator.h"
 
 int main (void)
 {
-    //Node* new_node_1 = new_node ("animal?");
-
-    // insert_node (new_node_1, "keeping in the registry");
-
-    // insert_node (new_node_1, "poltorashka");
-
-    // insert_node (new_node_1, "quadrober");
-
-    /*===================================================================================================================================*/
-
     Node* new_node_1 = new_node ("animal?");
 
     Node* new_node_2 = new_node ("poltorashka");
@@ -40,7 +31,6 @@ int main (void)
     write_data (new_node_1);
 
     graph_dump (new_node_1, NULL);
-
 
     return 0;
 }
@@ -160,34 +150,50 @@ int write_data (struct Node* node)
     if (baza == NULL)
     {
         printf ("\n%s(): ERROR open baza.txt\n", __func__);
+        return -1;
     }
 
-    //printf ()
-    print_preorder (node, baza, 0);
+    print_preorder_in_file (node, baza, 0); 
 
     fclose (baza);
 
     return 0;
 }
 
-int print_preorder (struct Node* node, FILE* baza, int level)
+int print_preorder_in_file_in_file (struct Node* node, FILE* baza, int level)
 {
     assert (node);
 
-    fprintf (baza, "%s{ ", level * 4, "");
+    fprintf (baza, "%*s{ ", level * 4, "");
 
     fprintf (baza, "\"%s\" ", node->data);
 
     if (node->left)
         fprintf(baza, "\n");
 
-    if (node->left) print_preorder (node->left, baza, level + 1);
+    if (node->left)  print_preorder_in_file (node->left,  baza, level + 1);
 
-    if (node->right) print_preorder (node->right, baza, level + 1);
+    if (node->right) print_preorder_in_file (node->right, baza, level + 1);
 
-    fprintf (baza, "%*s} \n", node->left ? level * 4 : 0, "");
+    fprintf (baza, "%*s} \n", (node->left) ? level * 4 : 0, "");
 
     return 0;
+}
+
+Node* read_file (struct Node* node, FILE* baza) // int .. 
+{
+    assert (node);
+
+    char buffer [100] = "";
+
+
+    int is_space = isspace (buffer);    
+
+    if (is_space != 0)
+    {
+        
+    }
+
 }
 
 //вставка нового элемента в  дерево  
@@ -242,25 +248,6 @@ Node* insert_node (struct Node* node)
             }
         }
     }   
-    // Node* pointer = 0;
-    // if (node == NULL)  // хуй 
-    // {
-    //     pointer = new_node (data);
-    //     if (pointer == NULL)
-    //     {
-    //         printf ("\nERROR: new_node returned 0\n");
-    //         return NULL;
-    //     }
-    //     return 0;
-    // }
-    
-    // if (data < node->data) 
-    // {
-    //     node->left  = insert_node(pointer1, data);
-    // }
-
-    // else 
-    //     node->right = insert_node(node->right, data);
     
     return node;
 }
