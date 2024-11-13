@@ -13,6 +13,7 @@ struct Node
     struct Node* left;
     struct Node* right;
     struct Node* parent;
+     int shoot_free;
 };
 
 struct Buffer
@@ -23,6 +24,8 @@ struct Buffer
 
 Node* new_node    (const char* data);
 Node* guesse_word (struct Node* node);
+struct Node* add_info (struct Node* node);
+void clean_buffer(void);
 
 Node* insert_new_node (struct Node* node);
 Node* insert_node (struct Node* node);

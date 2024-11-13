@@ -30,6 +30,8 @@ int main (void)
     fprintf (stderr, "%s(): read_data() returned node = %p\n", __func__, node);
 
     fprintf (stderr, "\n\nnode->data = '%s' | %p\n\n", node->data, node->data);
+    /*=========================================================================================================*/
+
     // Node* new_node_1 = new_node ("animal?");
 
     // Node* new_node_2 = new_node ("poltorashka");
@@ -75,23 +77,147 @@ Node* new_node (const char* data) // Node* ne_node (Node* parent, int data)
     }
     node->right = NULL;
     node->left  = NULL;
+    node->shoot_free = 0;
 
     printf("\n%s(): sizeof (node) = %ld, node->data = %s | %p \n", __func__, sizeof (node), node->data, node->data);
 
     return node;
 }
 
-Node* guesse_word (struct Node* node)
-{
-    Node* root = node;
+// Node* guesse_word (struct Node* node)
+// {
+//     //Node* root = node;
 
-    char data[100] = "";
+//     char data[100] = "";
+
+//     while (1) 
+//     {
+//         printf("(%d) is it %s this? (yes/no)", __LINE__, node->data);
+//         scanf("%s", data); 
+
+//         if (strcmp(data, "yes") == 0) 
+//         {
+//             if (node->left != NULL) 
+//             {
+//                 node = node->left;
+//             } 
+
+//             else 
+//             {
+//                 printf (" (%d) Do you want to insert a new object %s? (yes/no)\n", __LINE__, node->data);
+
+//                 scanf ("%s", data);
+
+//                 if (strcmp(data, "yes") == 0)
+//                 {
+//                     printf("(%d) LEFT: I do not know! Let's add obj in my baza | node->data = '%s'\n", __LINE__, node->data);
+
+//                     node->left = insert_new_node (node);
+//                     printf ("\nnode->data = %s\n", data);
+//                     break;
+//                 }
+
+//                 else
+//                 {
+//                     printf ("\nI told you so! You're a leather bag Danka\n");
+//                     break;
+//                 }
+//             }
+//         } 
+
+//         else 
+//         {
+//             if (node->right != NULL) 
+//             {
+//                 node = node->right;
+//             } 
+
+//             else 
+//             {
+//                 printf ("(%d) Do you want to insert a new object %s? (yes/no)\n", __LINE__, node->data );
+
+//                 scanf ("%s", data);
+//                 printf ("\n(%d) 2_scanf\n", __LINE__);
+
+//                 if (strcmp(data, "yes") == 0)
+//                 {
+//                     printf("(%d) RIGHT: I do not know! Let's add %s in my knowledge.\n", __LINE__, data);
+
+//                     node->right = insert_new_node (node);
+//                     printf ("\ndata = %s\n", data);
+//                     break;
+//                 }         
+
+//                 else
+//                 {
+//                     printf ("\nI told you so! You're a leather bag Danka\n");
+//                     break;
+//                 }       
+//             }
+//         }
+//     }
+
+//     return node;
+// }
+
+// Node* insert_new_node (struct Node* node) // Node* insert_new_node (struct Node* node)
+// {
+//     printf ("\n(%d)Who was it ?\n", __LINE__);
+
+//     char data[100] = "";
+
+//     scanf ("%s", data);
+//     printf("\n(%d) >>> ddlx\n", __LINE__);
+
+//     node->left  = new_node (data);
+//     printf ("\nWhat is the difference betwen %s and %s. %s is......\n", node->left,);
+//     node->right = new_node (data);
+
+//     //return node;
+//     return 0;
+// }
+
+void clean_buffer(void) 
+{
+    while ((getchar()) != '\n') { ; }
+}
+
+struct Node* add_info(struct Node* node) 
+{
+    struct Node* ptr_left  = new_node("0");
+    struct Node* ptr_right = new_node("0");
+
+    node->left  = ptr_left;
+    node->right = ptr_right;
+
+    char new_object[100];
+    printf("Who was it?\n");
+    scanf("%s", new_object);
+    ptr_left->data = strdup(new_object);
+    ptr_left->shoot_free = 1;
+
+    ptr_right->data = strdup(node->data);
+    if (node->shoot_free == 1)
+        ptr_right->shoot_free = 1;
+
+    char diff_object[200];
+    printf("What is the difference between %s and %s?\n", ptr_left->data, ptr_right->data);
+    scanf(" %[^\n]", diff_object);
+
+    node->data = strdup(diff_object);
+    node->shoot_free = 1;
+
+    return node;
+}
+
+struct Node* guesse_word(struct Node* node) 
+{
+    char data[100];
 
     while (1) 
     {
-        printf("(%d) is it %s this? (yes/no)", __LINE__, node->data);
-        scanf("%s", data); 
-        printf("\n(%d) 0_scanf\n", __LINE__);
+        printf("Is it %s? (yes/no)\n", node->data);
+        scanf("%s", data);
 
         if (strcmp(data, "yes") == 0) 
         {
@@ -102,23 +228,19 @@ Node* guesse_word (struct Node* node)
 
             else 
             {
-                printf (" (%d) Do you want to insert a new object %s? (yes/no)\n", __LINE__, node->data, node->left);
+                printf("Do you want to insert a new object for %s? (yes/no)\n", node->data);
+                scanf("%s", data);
 
-                scanf ("%s", data);
-                printf ("\n1_scanf\n");
-
-                if (strcmp(data, "yes") == 0)
+                if (strcmp(data, "yes") == 0) 
                 {
-                    printf("(%d) LEFT: I do not know! Let's add obj in my knowledge | node->data = '%s'\n", __LINE__, node->data);
-
-                    node->left = insert_new_node (node);
-                    printf ("\nnode->data = %s\n", data);
+                    printf("I do not know! Let's add an object to the tree.\n");
+                    node = add_info(node);
                     break;
-                }
+                } 
 
-                else
+                else 
                 {
-                    printf ("\nI told you so! You're a leather bag Danka\n");
+                    printf("I told you so! You're mistaken.\n");
                     break;
                 }
             }
@@ -131,48 +253,28 @@ Node* guesse_word (struct Node* node)
                 node = node->right;
             } 
 
-            else 
+            else
             {
-                printf ("(%d) Do you want to insert a new object %s? (yes/no)\n", __LINE__, node->data );
+                printf("Do you want to insert a new object for %s? (yes/no)\n", node->data);
+                scanf("%s", data);
 
-                scanf ("%s", data);
-                printf ("\n(%d) 2_scanf\n", __LINE__);
-
-                if (strcmp(data, "yes") == 0)
+                if (strcmp(data, "yes") == 0) 
                 {
-                    printf("(%d) RIGHT: I do not know! Let's add %s in my knowledge.\n", __LINE__, data);
-
-                    node->right = insert_new_node (node);
-                    printf ("\ndata = %s\n", data);
+                    printf("I do not know! Let's add an object to the tree.\n");
+                    node = add_info(node);
                     break;
-                }         
-
-                else
+                }
+                
+                else 
                 {
-                    printf ("\nI told you so! You're a leather bag Danka\n");
+                    printf("I told you so! You're mistaken.\n");
                     break;
-                }       
+                }
             }
         }
     }
 
     return node;
-}
-
-Node* insert_new_node (struct Node* node) // Node* insert_new_node (struct Node* node)
-{
-    printf ("\n(%d)Who was it ?\n", __LINE__);
-
-    char data[100] = "";
-
-    scanf ("%s", data);
-    printf("\n(%d) >>> ddlx\n", __LINE__);
-
-    node->left  = new_node (data);
-    node->right = new_node (data);
-
-    //return node;
-    return 0;
 }
 
 int write_data (struct Node* node)
