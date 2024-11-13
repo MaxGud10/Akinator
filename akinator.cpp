@@ -1,36 +1,57 @@
+#define DEBUG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 #include "log.h"
 #include "akinator.h"
 
+#ifdef DEBUG
+    #define DBG(...) __VA_ARGS__
+#else
+    #define DBG(...)
+#endif
+
 int main (void)
 {
-    Node* new_node_1 = new_node ("animal?");
+    FILE* baza = fopen ("baza.txt", "r");
+    assert (baza);
+    struct Buffer buffer = {};
 
-    Node* new_node_2 = new_node ("poltorashka");
+    printf ("\n>>>> ddlx\n");
 
-    Node* new_node_3 = new_node ("conducts a discussion");
+    struct Node* node = read_data (baza, &buffer);
+    printf ("baza");
 
-    Node* new_node_4 = new_node ("Burtsev");
+    fprintf (stderr, "%s(): read_data() returned node = %p\n", __func__, node);
 
-    Node* new_node_5 = new_node ("leads the physics department"); //🐱‍🚀
+    fprintf (stderr, "\n\nnode->data = '%s' | %p\n\n", node->data, node->data);
+    // Node* new_node_1 = new_node ("animal?");
+
+    // Node* new_node_2 = new_node ("poltorashka");
+
+    // Node* new_node_3 = new_node ("conducts a discussion");
+
+    // Node* new_node_4 = new_node ("Burtsev");
+
+    // Node* new_node_5 = new_node ("leads the physics department"); 
 
 
-    new_node_1->left  = new_node_2; 
-    new_node_1->right = new_node_3;
+    // new_node_1->left  = new_node_2; 
+    // new_node_1->right = new_node_3;
 
-    new_node_3->left  = new_node_4;
-    new_node_3->right = new_node_5;
+    // new_node_3->left  = new_node_4;
+    // new_node_3->right = new_node_5;
 
-    guesse_word (new_node_1);
+    guesse_word (node);
 
-    write_data (new_node_1);
+    write_data (node);
 
-    graph_dump (new_node_1, NULL);
+    graph_dump (node, NULL);
 
     return 0;
 }
@@ -39,13 +60,23 @@ int main (void)
 Node* new_node (const char* data) // Node* ne_node (Node* parent, int data)
 {
     Node* node = (Node*) calloc (1, sizeof (*node));
-
-    printf("\n%s(): sizeof (node) = %ld\n", __func__, sizeof (node));
+    if (node == NULL) 
+    {
+        printf("%s(): Error allocating memory\n", __func__);
+        return NULL;
+    }
 
     node->data  = strdup (data);
-    // node->data  = data;
+    if (node->data == NULL) 
+    {
+        printf("%s(): Error duplicating data \n", __func__);
+        free(node); 
+        return NULL;
+    }
     node->right = NULL;
     node->left  = NULL;
+
+    printf("\n%s(): sizeof (node) = %ld, node->data = %s | %p \n", __func__, sizeof (node), node->data, node->data);
 
     return node;
 }
@@ -71,7 +102,7 @@ Node* guesse_word (struct Node* node)
 
             else 
             {
-                printf (" (%d) Do you want to insert a new object %s? (yes/no)\n", node->left, __LINE__, node->data);
+                printf (" (%d) Do you want to insert a new object %s? (yes/no)\n", __LINE__, node->data, node->left);
 
                 scanf ("%s", data);
                 printf ("\n1_scanf\n");
@@ -160,7 +191,7 @@ int write_data (struct Node* node)
     return 0;
 }
 
-int print_preorder_in_file_in_file (struct Node* node, FILE* baza, int level)
+int print_preorder_in_file (struct Node* node, FILE* baza, int level)
 {
     assert (node);
 
@@ -180,21 +211,203 @@ int print_preorder_in_file_in_file (struct Node* node, FILE* baza, int level)
     return 0;
 }
 
-Node* read_file (struct Node* node, FILE* baza) // int .. 
+
+Node* read_data (FILE* baza, struct Buffer* buffer)
 {
-    assert (node);
-
-    char buffer [100] = "";
-
-
-    int is_space = isspace (buffer);    
-
-    if (is_space != 0)
+    if (baza == NULL) 
     {
-        
+        printf("\nError: file pointer is NULL\n");
+        return NULL;
     }
 
+    struct stat st = {};
+    if (fstat (fileno (baza), &st) == -1)
+    {
+        printf ("\nError getting file info\n");
+        return NULL;
+    }
+
+    long file_size = st.st_size;
+
+    buffer->buffer = (char*) calloc ((size_t) file_size + 1, sizeof(buffer->buffer[0]));
+    if (buffer->buffer == NULL)
+    {
+        printf ("\nError allocating memory\n");
+        return NULL;
+    }
+
+    DBG( printf ("\n\n\n\nbuffer->buffer = [%p]\n\n\n\n", buffer->buffer); )
+
+    size_t count = fread (buffer->buffer, sizeof(buffer->buffer[0]), (size_t) file_size, baza);
+    if (count != (size_t)file_size) // if ((long) count != file_size)
+    {
+        printf ("count = %zu != file_size = %ld", count, file_size);
+        return NULL;
+    }
+
+    fclose (baza);
+    buffer->current = buffer->buffer;
+
+    Node* root = read_node(0, buffer);
+    if (root == NULL) 
+    {
+        printf ("\n\n\n(%d)%s(): I discovered root == NULL\n", __LINE__, __func__);
+        free(buffer->buffer);
+    }
+
+    printf ("\nI'll return it now %p\n", root);
+    return root;
 }
+
+#define INDENT printf ("%*s", level*2, "")
+
+Node* read_node (int level, struct Buffer* buffer)
+{
+    if (buffer == NULL || buffer->current == NULL) 
+    {
+        printf("Error: invalid buffer\n");
+        return NULL;
+    }
+
+    DBG ( printf ("\n"); )
+    DBG ( INDENT; printf ("Starting read_node(). Cur = %.40s..., [%p]. buffer = [%p]\n", buffer->current,  buffer->current, buffer->buffer); )
+
+    int n = -1;
+    sscanf (buffer->current, " { %n", &n);
+    if (n < 0) 
+    { 
+        DBG ( INDENT; printf ("No '{' found. Return NULL.\n"); ) 
+        return NULL; 
+    }
+
+    buffer->current += n;
+
+    DBG ( INDENT; printf ("Got an '{'. Creating a node. Cur = %.40s..., [%p]. buffer = [%p]\n", buffer->current,  buffer->current, buffer->buffer); )
+
+    Node* node = new_node (""); // new_node (NULL);
+    if (node == NULL)
+    {
+        printf("\n\n(%d)%s(): new_node can not memory \n", __LINE__, __func__);
+        return NULL;
+    }
+
+
+    n = -1;
+    int bgn = 0, end = 0;
+    sscanf (buffer->current, " \"%n%*[^\"]%n\" %n", &bgn, &end, &n);
+    if (n < 0) 
+    { 
+        DBG ( INDENT; printf ("No DATA found. Return NULL.\n"); ) 
+        return NULL; 
+    }
+
+    if (bgn < 0 || end < 0 || end < bgn) // проверка что не выходим за пределы buffer
+    {
+        printf("\nInvalid bounds for data. Return NULL.\n");
+        return NULL;
+    }
+
+    *(buffer->current + end) = '\0';
+    node->data = buffer->current + bgn;
+
+    DBG ( INDENT; printf ("Got a NAME: '%s'. Cur = %.40s..., [%p]. buffer = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
+
+    buffer->current += n;
+
+    DBG ( INDENT; printf ("Shifted CURRENT_PTR: '%s'. Cur = %.40s..., [%p]. buffer = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
+
+    n = -1;
+    char chr = '\0';
+    sscanf (buffer->current, " %c %n", &chr, &n);
+    if (n < 0) 
+    { 
+        DBG ( INDENT; printf ("No ending symbol (1) found. Return NULL.\n"); ) 
+        return NULL; 
+    }
+
+    if (chr == '}')
+    {
+        buffer->current += n;
+        //DBG ( INDENT; printf ("Got a '}', SHORT Node END (data = '%s'). Return node. Cur = %.40s..., [%p]. buffer_ptr = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
+        return node;
+    }
+
+    DBG ( INDENT; printf ("'}' NOT found. Supposing a left/right subtree. Reading left node. Cur = %.40s..., [%p]. buffer_ptr = [%p]\n", buffer->current, buffer->current, buffer->buffer); )
+
+    DBG (printf ("\nnode->left = %p\n", node->left);)
+    node->left = read_node (level + 1, buffer);
+    if (node->left == NULL)
+    {
+        printf ("\n(%d) node->left == NULL\n", __LINE__);
+        return NULL;
+    }
+
+    DBG ( INDENT; printf ("\n" "LEFT subtree read. Data of left root = '%s'\n\n", node->left->data); )
+
+    DBG ( printf ("Reading right node. Cur = %.40s...\n", buffer->current); )
+
+    node->right = read_node (level + 1, buffer);
+    if (node->right == NULL)
+    {
+        printf ("\n(%d) node->right == NULL\n", __LINE__);
+        return NULL;
+    }
+
+    DBG ( INDENT; printf ("\n" "RIGHT subtree read. Data of right root = '%s'\n", node->right->data); )
+
+    chr = '\0';
+    sscanf (buffer->current, " %c %n", &chr, &n);
+    if (n < 0) 
+    { 
+        DBG ( INDENT; printf ("No ending symbol (2) found. Return NULL.\n"); ) 
+        return NULL; 
+    }
+
+    if (chr == '}') // ?
+    {
+        buffer->current += n;
+
+        DBG ( INDENT; printf ("Got a '}', FULL Node END (data = '%s'). Return node. Cur = %.40s..., [%p]. buffer_ptr = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
+
+        return node;
+    }
+
+    DBG (printf ("\n\n(%d)%s(): I return %p\n\n", __LINE__, __func__, node));
+    return node;
+
+    //return NULL;
+}
+
+// Node* read_file (struct Buffer* buffer, FILE* baza, int data) // int .. 
+// {
+//     assert (buffer);
+
+//     printf ("\n");
+
+//     int n = 0; // ! -1
+//     sscanf (buffer->current, " { %n", &n);
+//     if (n = 0)
+//     {
+//         printf ("No '{' found. Return NULL.\n");
+//         return NULL;
+//     }
+
+//     buffer->current += n // Перемещаем указатель текущей позиции в буфере 
+
+//     зкштеа ()
+
+//     // char buffer [100] = "";
+
+//     int skip = skip_space (buffer);
+
+//     if (skip != 0)
+//     {
+//         new_node (buffer); // ?
+
+//     }
+
+
+// }
 
 //вставка нового элемента в  дерево  
 Node* insert_node (struct Node* node) 
@@ -237,6 +450,7 @@ Node* insert_node (struct Node* node)
                 node = node->right;
 
                 graph_dump (root, node);
+            
             }
             else // if (node->right == NULL)
             {
@@ -267,22 +481,6 @@ void inorder (struct Node* node)
     if (node->right) inorder (node->right);
 
     printf (" ) ");
-
-    // if (node->left) 
-    // {
-    //     printf("(");
-    //     inorder(node->left);
-    //     printf(")");
-    // }
-
-    // printf("%d", node->data);
-
-    // if (node->right) 
-    // {
-    //     printf("(");
-    //     inorder(node->right);
-    //     printf(")");
-    // }
 }
 
 // Обход в порядке Postorder
@@ -296,22 +494,6 @@ void postorder(struct Node* node)
     if (node->left)  postorder (node->left);
 
     if (node->right) postorder (node->right);
-
-    // if (node->left) 
-    // {
-    //     printf("(");
-    //     postorder(node->left);
-    //     printf(")");
-    // }
-
-    // if (node->right) 
-    // {
-    //     printf("(");
-    //     postorder(node->right);
-    //     printf(")");
-    // }
-
-    //printf("%d", node->data);
 }
 
 int graph_dump (struct Node* node, struct Node* selection)
@@ -379,8 +561,7 @@ void preorder (struct Node* node, FILE* graph_dump, struct Node* selection)
 
     printf (" (%d) ", __LINE__);
 
-    // fprintf (graph_dump, "\nnode%p->node%p\n", node, node->left);
-    // fprintf (graph_dump, "\n\nnode%p->node%p\n\n", node, node->right);
-
     printf("\n)");
 }
+
+
