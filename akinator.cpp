@@ -6,9 +6,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/stat.h>
+#include <stdint.h> 
 
 #include "log.h"
 #include "akinator.h"
+//#include "stack.h"
 
 #ifdef DEBUG
     #define DBG(...) __VA_ARGS__
@@ -18,8 +20,8 @@
 
 int main (void)
 {
-    FILE* baza = fopen ("baza.txt", "r");
-    assert (baza);
+    FILE* baza = fopen ("baza.txt", "r"); // TODO: передавать через cmd
+    assert (baza); // TODO: по другому обрабатывать
     struct Buffer buffer = {};
 
     printf ("\n>>>> ddlx\n");
@@ -30,28 +32,12 @@ int main (void)
     fprintf (stderr, "%s(): read_data() returned node = %p\n", __func__, node);
 
     fprintf (stderr, "\n\nnode->data = '%s' | %p\n\n", node->data, node->data);
-    /*=========================================================================================================*/
 
-    // Node* new_node_1 = new_node ("animal?");
+    find_object (node, "Yuri_Dmitrievich");
+ 
+    // guesse_word (node);
 
-    // Node* new_node_2 = new_node ("poltorashka");
-
-    // Node* new_node_3 = new_node ("conducts a discussion");
-
-    // Node* new_node_4 = new_node ("Burtsev");
-
-    // Node* new_node_5 = new_node ("leads the physics department"); 
-
-
-    // new_node_1->left  = new_node_2; 
-    // new_node_1->right = new_node_3;
-
-    // new_node_3->left  = new_node_4;
-    // new_node_3->right = new_node_5;
-
-    guesse_word (node);
-
-    write_data (node);
+    // write_data (node);
 
     graph_dump (node, NULL);
 
@@ -59,9 +45,9 @@ int main (void)
 }
 
 //создание нового узда в дереве 
-Node* new_node (const char* data) // Node* ne_node (Node* parent, int data)
+Node* new_node (const char* data, Node* parent) // Node* ne_node (Node* parent, int data)
 {
-    Node* node = (Node*) calloc (1, sizeof (*node));
+    Node* node = (Node*) calloc (1, sizeof (*node)); // TODO: писать название типа
     if (node == NULL) 
     {
         printf("%s(): Error allocating memory\n", __func__);
@@ -75,8 +61,10 @@ Node* new_node (const char* data) // Node* ne_node (Node* parent, int data)
         free(node); 
         return NULL;
     }
-    node->right = NULL;
-    node->left  = NULL;
+    node->right  = NULL;
+    node->left   = NULL;
+    node->parent = parent;
+
     node->shoot_free = 0;
 
     printf("\n%s(): sizeof (node) = %ld, node->data = %s | %p \n", __func__, sizeof (node), node->data, node->data);
@@ -184,8 +172,8 @@ void clean_buffer(void)
 
 struct Node* add_info(struct Node* node) 
 {
-    struct Node* ptr_left  = new_node("0");
-    struct Node* ptr_right = new_node("0");
+    struct Node* ptr_left  = new_node("0", node);
+    struct Node* ptr_right = new_node("0", node);
 
     node->left  = ptr_left;
     node->right = ptr_right;
@@ -212,14 +200,14 @@ struct Node* add_info(struct Node* node)
 
 struct Node* guesse_word(struct Node* node) 
 {
-    char data[100];
+    char data[100]  = {};
 
     while (1) 
     {
-        printf("Is it %s? (yes/no)\n", node->data);
-        scanf("%s", data);
+        printf ("Is it %s? (yes/no)\n", node->data);
+        scanf ("%s", data);
 
-        if (strcmp(data, "yes") == 0) 
+        if (strcmp (data, "yes") == 0 || strcmp (data,"y") == 0) 
         {
             if (node->left != NULL) 
             {
@@ -228,32 +216,36 @@ struct Node* guesse_word(struct Node* node)
 
             else 
             {
-                printf("Do you want to insert a new object for %s? (yes/no)\n", node->data);
-                scanf("%s", data);
 
-                if (strcmp(data, "yes") == 0) 
-                {
-                    printf("I do not know! Let's add an object to the tree.\n");
-                    node = add_info(node);
-                    break;
-                } 
+                printf ("\n\n");
+                printf ("\nI told you so! You are a weak lump of snot\n");
+                break;
+                // printf("Do you want to insert a new object for %s? (yes/no)\n", node->data);
+                // scanf("%s", data);
 
-                else 
-                {
-                    printf("I told you so! You're mistaken.\n");
-                    break;
-                }
+                // if (strcmp(data, "yes") == 0) 
+                // {
+                //     printf("I do not know! Let's add an object to the tree.\n");
+                //     node = add_info(node);
+                //     break;
+                // } 
+
+                // else 
+                // {
+                //     printf("I told you so! You're mistaken.\n");
+                //     break;
+                // }
             }
         } 
 
-        else 
+        else // data = no (Is it %s?)
         {
             if (node->right != NULL) 
             {
                 node = node->right;
             } 
 
-            else
+            else 
             {
                 printf("Do you want to insert a new object for %s? (yes/no)\n", node->data);
                 scanf("%s", data);
@@ -347,7 +339,7 @@ Node* read_data (FILE* baza, struct Buffer* buffer)
         return NULL;
     }
 
-    fclose (baza);
+    fclose (baza); // TODO: вынести до сюда в отдельную функцию (общая функция, мб из других проектов)
     buffer->current = buffer->buffer;
 
     Node* root = read_node(0, buffer);
@@ -374,7 +366,7 @@ Node* read_node (int level, struct Buffer* buffer)
     DBG ( printf ("\n"); )
     DBG ( INDENT; printf ("Starting read_node(). Cur = %.40s..., [%p]. buffer = [%p]\n", buffer->current,  buffer->current, buffer->buffer); )
 
-    int n = -1;
+    int n = -1; // TODO: название получше
     sscanf (buffer->current, " { %n", &n);
     if (n < 0) 
     { 
@@ -386,13 +378,12 @@ Node* read_node (int level, struct Buffer* buffer)
 
     DBG ( INDENT; printf ("Got an '{'. Creating a node. Cur = %.40s..., [%p]. buffer = [%p]\n", buffer->current,  buffer->current, buffer->buffer); )
 
-    Node* node = new_node (""); // new_node (NULL);
+    Node* node = new_node ("", NULL); // !?
     if (node == NULL)
     {
         printf("\n\n(%d)%s(): new_node can not memory \n", __LINE__, __func__);
         return NULL;
     }
-
 
     n = -1;
     int bgn = 0, end = 0;
@@ -444,6 +435,8 @@ Node* read_node (int level, struct Buffer* buffer)
         return NULL;
     }
 
+    node->left->parent = node;  // передаем parent предыдущего узла 
+
     DBG ( INDENT; printf ("\n" "LEFT subtree read. Data of left root = '%s'\n\n", node->left->data); )
 
     DBG ( printf ("Reading right node. Cur = %.40s...\n", buffer->current); )
@@ -454,6 +447,8 @@ Node* read_node (int level, struct Buffer* buffer)
         printf ("\n(%d) node->right == NULL\n", __LINE__);
         return NULL;
     }
+
+    node->right->parent = node; 
 
     DBG ( INDENT; printf ("\n" "RIGHT subtree read. Data of right root = '%s'\n", node->right->data); )
 
@@ -480,6 +475,75 @@ Node* read_node (int level, struct Buffer* buffer)
     //return NULL;
 }
 
+Node* find_object (struct Node* node, const char* search)
+{
+    if (node == NULL)
+        return 0;
+
+    //struct Stack stack = {};
+
+    if (strcmp (node->data, search) == 0)
+    {
+        Node* reverse [20] = {};
+
+        printf ("\nI'm find '%s'\n", search);
+
+        Node* cur_node = node;
+
+        int count = 0; 
+        while (cur_node != NULL)
+        {
+           // printf ("\ncount = %d| cur_node->data = '%s'\n", count, cur_node->data);
+
+            assert (count < 20);
+            reverse[count] = cur_node;
+            count++;
+
+            cur_node = cur_node->parent; 
+            // printf ()
+        }
+
+        printf ("\ncount = %d\n", count);
+        for (int i = count - 1; i >= 1; i--) // - 1 / + 1
+        {
+            //fprintf (stderr, "\ni = %d reverse[i] = %p reverse[i]->parent = %p", i, reverse[i], reverse[i]->parent);
+            
+            if (reverse[i]     != NULL &&  
+                reverse[i - 1] != NULL && 
+                reverse[i]->right == reverse[i - 1])
+            {
+                fprintf (stderr, "not ");
+            }
+            
+            fprintf (stderr,"'%s'\n", reverse[i]->data);
+        } 
+        
+        return node;
+    }
+
+    else
+    {
+        printf ("\nmeet %s but this is not %s\n", node->data, search);
+    }
+
+    //STACK_CTOR (&stack, 50);
+
+    Node* found_left = find_object (node->left, search);
+    if (found_left != NULL)
+        return node;
+
+    Node* found_right = find_object (node->right, search);
+    if (found_right != NULL)
+        return node;
+
+    //STACK_PUSH (&stack, 1);  
+
+    //stack_destroy (&stack);
+
+    return NULL;
+}
+
+
 // Node* read_file (struct Buffer* buffer, FILE* baza, int data) // int .. 
 // {
 //     assert (buffer);
@@ -504,7 +568,7 @@ Node* read_node (int level, struct Buffer* buffer)
 
 //     if (skip != 0)
 //     {
-//         new_node (buffer); // ?
+//         new_node (buffer); / /?
 
 //     }
 
@@ -512,61 +576,61 @@ Node* read_node (int level, struct Buffer* buffer)
 // }
 
 //вставка нового элемента в  дерево  
-Node* insert_node (struct Node* node) 
-{
-    Node* root = node;
+// Node* insert_node (struct Node* node) 
+// {
+//     Node* root = node;
 
-    char data[100] = "";
+//     char data[100] = "";
 
-    printf ("\nAnd who is this\n");
-    scanf ("%s ", data);
+//     printf ("\nAnd who is this\n");
+//     scanf ("%s ", data);
 
-    while (1)
-    {
-        if (data < node->data)
-        {
-            if (node->left != NULL)
-            {
-                printf ("\nIt is %s\n", data);
+//     while (1)
+//     {
+//         if (data < node->data)
+//         {
+//             if (node->left != NULL)
+//             {
+//                 printf ("\nIt is %s\n", data);
 
-                node = node->left;
-                graph_dump (root, node);
-            }
+//                 node = node->left;
+//                 graph_dump (root, node);
+//             }
 
-            else // if (node->left == NULL)
-            {
-                printf ("\nAnd who is this\n");
-                scanf ("%s ", data);
+//             else // if (node->left == NULL)
+//             {
+//                 printf ("\nAnd who is this\n");
+//                 scanf ("%s ", data);
 
-                node->left = new_node (data);
-                break;
-            }
-        }
+//                 node->left = new_node (data, );
+//                 break;
+//             }
+//         }
 
-        else
-        {
-            if (node->right != NULL)
-            {
-                printf ("\nIt is %s\n", data);
+//         else
+//         {
+//             if (node->right != NULL)
+//             {
+//                 printf ("\nIt is %s\n", data);
 
-                node = node->right;
+//                 node = node->right;
 
-                graph_dump (root, node);
+//                 graph_dump (root, node);
             
-            }
-            else // if (node->right == NULL)
-            {
-                printf ("\nAnd who is this\n");
-                scanf ("%s ", data);
+//             }
+//             else // if (node->right == NULL)
+//             {
+//                 printf ("\nAnd who is this\n");
+//                 scanf ("%s ", data);
 
-                node->right = new_node (data);
-                break;
-            }
-        }
-    }   
+//                 node->right = new_node (data);
+//                 break;
+//             }
+//         }
+//     }   
     
-    return node;
-}
+//     return node;
+// }
 
 // Обход в порядке Inorder
 void inorder (struct Node* node) 
@@ -598,7 +662,7 @@ void postorder(struct Node* node)
     if (node->right) postorder (node->right);
 }
 
-int graph_dump (struct Node* node, struct Node* selection)
+int graph_dump (struct Node* node, struct Node* selection) // TODO: сделать да/нет и покрасить детей в другой цвет 
 {
     FILE* graph_dump = fopen ("graph_dump.dot", "w");
     if (graph_dump == NULL)
@@ -667,3 +731,12 @@ void preorder (struct Node* node, FILE* graph_dump, struct Node* selection)
 }
 
 
+// void freeTree(Node* node) 
+// {
+//     if (node == NULL) 
+//         return;
+//     free (node->left);
+//     free (node->right);
+//     free (node->data); // Не забываем освободить строку
+//     free (node);
+// }

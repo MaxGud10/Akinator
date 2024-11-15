@@ -1,7 +1,16 @@
 { "animal?" 
-    { "poltorashka" } 
+    { "poltorashka" 
+        { "kvadrober" } 
+        { "ded" } 
+    } 
     { "conducts a discussion" 
         { "Burtsev" } 
-        { "leads the physics department" } 
+        { "He is lecturer" 
+            { "Holin" } 
+            { "he is labnik" 
+                { "Yuri_Dmitrievich" } 
+                { "Ovchous" } 
+            } 
+        } 
     } 
 } 
