@@ -44,3 +44,7 @@ Node* read_data (FILE* baza, struct Buffer* buffer);
 Node* read_node (int level, struct Buffer* buffer);
 
 Node* find_object (struct Node* node, const char* search);
+Node* find_nodes  (struct Node* node, const char* search);
+
+int comparison (struct Node* node);
+void compare_definitions (Node* root, const char* name1, const char* name2);

@@ -48,9 +48,9 @@ int main (void)
 
     fprintf (stderr, "\n\nnode->data = '%s' | %p\n\n", node->data, node->data);
 
-    find_object (node, "Yuri_Dmitrievich");
+    //find_object (node, "Yuri_Dmitrievich");
 
- 
+    compare_definitions (node, "Yuri_Dmitrievich", "ded");
     // guesse_word (node);
 
     // write_data (node);
@@ -491,7 +491,127 @@ Node* read_node (int level, struct Buffer* buffer)
     //return NULL;
 }
 
-Node* find_object (struct Node* node, const char* search)
+// исправь эту ошибку не исправляя функцию find_nodesто есть можешь использовать функции find_nodes и  find_object, но их не исправляй
+void compare_definitions(Node* root, const char* name1, const char* name2) 
+{
+    struct Stack path1 = {};
+    struct Stack path2 = {};
+
+    stack_ctor (&path1, 20);
+    stack_ctor (&path2, 20);
+
+    find_object (root, name1);
+    find_object (root, name2);
+
+    // Get paths for each object
+    Node* node1 = root;
+    Node* node2 = root;
+
+    find_nodes (node1, name1);
+    find_nodes (node2, name2);
+
+    // if (path1.size == 0 && path2.size == 0) 
+    // {
+    //     printf("Both paths are empty. Cannot compare definitions.\n");
+    //     stack_dtor(&path1);
+    //     stack_dtor(&path2);
+    //     return; // Выход из функции, если оба пути пустые
+    // }
+
+    // else if (path1.size == 0) 
+    // {
+    //     printf("Path for '%s' is empty. Cannot compare definitions.\n", name1);
+    //     stack_dtor(&path1);
+    //     stack_dtor(&path2);
+    //     return; // Выход из функции, если только path1 пуст
+    // }
+    
+    // else if (path2.size == 0) 
+    // {
+    //     printf("Path for '%s' is empty. Cannot compare definitions.\n", name2);
+    //     stack_dtor(&path1);
+    //     stack_dtor(&path2);
+    //     return; // Выход из функции, если только path2 пуст
+    // }
+
+
+    printf("\nThe general part:\n");
+    int general_part_length = 0;
+
+    printf ("\npath1.size = %d |  path2.size = %d\n", path1.size, path2.size);
+    int min_path_length = path1.size < path2.size ? path1.size : path2.size;
+    printf ("\nmin_path_length = %d\n", min_path_length);
+
+    for (int i = 0; i < min_path_length; i++) 
+    {
+        Node* num1 = look_number (&path1, i);
+        Node* num2 = look_number (&path2, i);
+
+        fprintf (stderr, "\n(num1 = %p | num2 = %p) num1->data = '%s' | num2->data = '%s'\n", num1, num2, num1->data, num2->data);
+
+        if (strcmp(num1->data, num2->data) == 0) 
+        {
+            printf ("%s ", num1->data);
+            general_part_length = i + 1;
+        } 
+        else 
+        {
+            break;
+        }
+    }
+
+    printf("\n1) The different part:\n");
+    for (int i = general_part_length; i < path1.size; i++) 
+    {
+        Node* num = look_number (&path1, i);
+        fprintf (stderr, "%s ", num->data);
+    }
+
+    printf("\n2) The different part:\n");
+    for (int i = general_part_length; i < path2.size; i++) 
+    {
+        Node* num = look_number(&path2, i);
+        fprintf(stderr, "%s ", num->data);
+    }
+
+    printf("\n");
+
+    stack_dtor(&path1);
+    stack_dtor(&path2);
+}
+
+
+
+// //функция сравнения определений 
+// int comparison (struct Node* node)
+// {
+//     if (node == NULL)
+//     {
+//         fprintf (stderr, "\n(%d)%s(): ERROR node == NULL\n");
+//         return 0;
+//     }
+
+//     char* object_1 = NULL;
+//     char* object_2 = NULL;
+
+//     //printf ("\nchoose which objects you want to compare\n"); 
+
+//     printf ("enter the first object: ");
+//     getline (&object_1, &size_max, stdin);
+
+//     size_t size_1 = strlen (object_1); //FIXME - input processing
+//     assert (size_1); //FIXME
+
+//     if (object_1[size_1 - 1] == '\n')
+//         object_1[size_1 - 1] =  '\0';
+
+
+
+//     return 0;
+// }
+
+// определение 
+Node* find_object (struct Node* node, const char* search) // TODO: сделать, чтобы пользователь вводил кого надо найти, а не параметром 
 {
     if (node == NULL)
         return 0;
@@ -499,57 +619,8 @@ Node* find_object (struct Node* node, const char* search)
 
     if (strcmp (node->data, search) == 0)
     {
-        //Node* reverse [20] = {};
-        struct Stack stack = {};
 
-        stack_ctor (&stack, 20);
-
-        printf ("\nI'm find '%s'\n", search);
-
-        Node* cur_node = node;
-
-        int count = 0; 
-        while (cur_node != NULL)
-        {
-            assert (count < 20);
-            //reverse[count] = cur_node;
-            count++;
-
-            stack_push (&stack, cur_node); 
-            cur_node = cur_node->parent;
-        }
-
-        printf ("\ncount = %d\n", count);
-        for (int i = count - 1; i >= 1; i--) // - 1 / + 1
-        {
-            //fprintf (stderr, "\ni = %d reverse[i] = %p reverse[i]->parent = %p", i, reverse[i], reverse[i]->parent);
-            Node* num   = look_number (&stack, i);
-            Node* num_1 = look_number (&stack, i - 1);
-
-            //fprintf (stderr, "\ni =%d| num = %p(%s), num_1 = %p(%s) , \n", i, num, num->data,num_1, num_1->data);
-
-            if (num  != NULL &&
-                num_1 != NULL &&
-                num->right == num_1)
-            {
-                fprintf (stderr, "NOT");
-            }
-
-            // if (reverse[i]     != NULL &&  
-            //     reverse[i - 1] != NULL && 
-            //     reverse[i]->right == reverse[i - 1])
-            // {
-            //     fprintf (stderr, "not ");
-            // }
-            
-            fprintf (stderr, "'%s\n\n'", num->data);
-            //fprintf (stderr,"'%s'\n", reverse[i]->data);
-
-        } 
-        
-        stack_dtor (&stack);
-
-        return node;
+        find_nodes (node, search);
     }
 
     else
@@ -568,6 +639,62 @@ Node* find_object (struct Node* node, const char* search)
         return node;
 
     return NULL;
+}
+
+Node* find_nodes (struct Node* node, const char* search)
+{
+    assert (node);
+           //Node* reverse [20] = {};
+    struct Stack stack = {};
+
+    stack_ctor (&stack, 20);
+
+    printf ("\nI'm find '%s'\n", search);
+
+    Node* cur_node = node;
+
+    int count = 0; 
+    while (cur_node != NULL)
+    {
+        assert (count < 20);
+        //reverse[count] = cur_node;
+        count++;
+
+        stack_push (&stack, cur_node); 
+        cur_node = cur_node->parent;
+    }
+
+    printf ("\ncount = %d\n", count);
+    for (int i = count - 1; i >= 1; i--) // - 1 / + 1
+    {
+        //fprintf (stderr, "\ni = %d reverse[i] = %p reverse[i]->parent = %p", i, reverse[i], reverse[i]->parent);
+        Node* num   = look_number (&stack, i);
+        Node* num_1 = look_number (&stack, i - 1);
+
+        //fprintf (stderr, "\ni =%d| num = %p(%s), num_1 = %p(%s) , \n", i, num, num->data,num_1, num_1->data);
+
+        if (num  != NULL &&
+            num_1 != NULL &&
+            num->right == num_1)
+        {
+            fprintf (stderr, "NOT");
+        }
+
+        // if (reverse[i]     != NULL &&  
+        //     reverse[i - 1] != NULL && 
+        //     reverse[i]->right == reverse[i - 1])
+        // {
+        //     fprintf (stderr, "not ");
+        // }
+        
+        fprintf (stderr, "'%s\n\n'", num->data);
+        //fprintf (stderr,"'%s'\n", reverse[i]->data);
+
+    } 
+    
+    stack_dtor (&stack);
+
+    return node;
 }
 
 
