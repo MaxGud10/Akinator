@@ -10,7 +10,7 @@
 
 #include "log.h"
 #include "akinator.h"
-//#include "stack.h"
+#include "stack.h"
 
 #ifdef DEBUG
     #define DBG(...) __VA_ARGS__
@@ -20,9 +20,24 @@
 
 int main (void)
 {
+    struct Stack stack = {};
+
+    // stack_ctor (&stack, 20);
+
+    // stack_push (&stack, 10);  
+
+    // Stack_Elem_t x = stack_pop (&stack);
+
+    // printf ("x = %d", x);
+
+    // stack_dtor (&stack);
+
+    // return 0;
+
     FILE* baza = fopen ("baza.txt", "r"); // TODO: передавать через cmd
     assert (baza); // TODO: по другому обрабатывать
     struct Buffer buffer = {};
+
 
     printf ("\n>>>> ddlx\n");
 
@@ -34,6 +49,7 @@ int main (void)
     fprintf (stderr, "\n\nnode->data = '%s' | %p\n\n", node->data, node->data);
 
     find_object (node, "Yuri_Dmitrievich");
+
  
     // guesse_word (node);
 
@@ -480,11 +496,13 @@ Node* find_object (struct Node* node, const char* search)
     if (node == NULL)
         return 0;
 
-    //struct Stack stack = {};
 
     if (strcmp (node->data, search) == 0)
     {
-        Node* reverse [20] = {};
+        //Node* reverse [20] = {};
+        struct Stack stack = {};
+
+        stack_ctor (&stack, 20);
 
         printf ("\nI'm find '%s'\n", search);
 
@@ -493,31 +511,44 @@ Node* find_object (struct Node* node, const char* search)
         int count = 0; 
         while (cur_node != NULL)
         {
-           // printf ("\ncount = %d| cur_node->data = '%s'\n", count, cur_node->data);
-
             assert (count < 20);
-            reverse[count] = cur_node;
+            //reverse[count] = cur_node;
             count++;
 
-            cur_node = cur_node->parent; 
-            // printf ()
+            stack_push (&stack, cur_node); 
+            cur_node = cur_node->parent;
         }
 
         printf ("\ncount = %d\n", count);
         for (int i = count - 1; i >= 1; i--) // - 1 / + 1
         {
             //fprintf (stderr, "\ni = %d reverse[i] = %p reverse[i]->parent = %p", i, reverse[i], reverse[i]->parent);
-            
-            if (reverse[i]     != NULL &&  
-                reverse[i - 1] != NULL && 
-                reverse[i]->right == reverse[i - 1])
+            Node* num   = look_number (&stack, i);
+            Node* num_1 = look_number (&stack, i - 1);
+
+            //fprintf (stderr, "\ni =%d| num = %p(%s), num_1 = %p(%s) , \n", i, num, num->data,num_1, num_1->data);
+
+            if (num  != NULL &&
+                num_1 != NULL &&
+                num->right == num_1)
             {
-                fprintf (stderr, "not ");
+                fprintf (stderr, "NOT");
             }
+
+            // if (reverse[i]     != NULL &&  
+            //     reverse[i - 1] != NULL && 
+            //     reverse[i]->right == reverse[i - 1])
+            // {
+            //     fprintf (stderr, "not ");
+            // }
             
-            fprintf (stderr,"'%s'\n", reverse[i]->data);
+            fprintf (stderr, "'%s\n\n'", num->data);
+            //fprintf (stderr,"'%s'\n", reverse[i]->data);
+
         } 
         
+        stack_dtor (&stack);
+
         return node;
     }
 
@@ -535,10 +566,6 @@ Node* find_object (struct Node* node, const char* search)
     Node* found_right = find_object (node->right, search);
     if (found_right != NULL)
         return node;
-
-    //STACK_PUSH (&stack, 1);  
-
-    //stack_destroy (&stack);
 
     return NULL;
 }
