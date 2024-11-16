@@ -7,6 +7,8 @@ struct Stack // TODO добавить уже написанный стек. По
 {
     int size;
     int capacity;
+    int top;
+    Node* nodes[20];
     Stack_Elem_t *data; 
 };
 
