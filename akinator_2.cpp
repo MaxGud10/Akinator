@@ -9,7 +9,7 @@
 #include <stdint.h> 
 
 #include "log.h"
-#include "akinator.h"
+#include "akinator_2.h"
 #include "stack.h"
 #include "color.h"
 
@@ -36,7 +36,7 @@ int main (void)
     
 
     // akinator_game(node);
-    // find_object (node, "Yuri_Dmitrievich");
+    select_mode (node);
 
     //compare_definitions (node, "Yuri_Dmitrievich", "ded");
 
@@ -46,7 +46,7 @@ int main (void)
 
     //create_definition (node);
 
-    create_comparison (node);
+    // create_comparison (node); // Todo 
 
     graph_dump (node, NULL);
 
@@ -61,10 +61,12 @@ int select_mode (struct Node* node)
     int mode = 1;
     while (mode)
     {
-        printf (PURPLE_TEXT("What do you wanna doing?"));
-        printf (BLUE_TEXT("[a]") PURPLE_TEXT("kinator game, ")
-               BLUE_TEXT ("[d]") PURPLE_TEXT("efinition, ")
-               BLUE_TEXT ("[c]") PURPLE_TEXT("omparison, "));
+        printf (PURPLE_TEXT("\n\nWhat do you wanna doing?"));
+        printf (BLUE_TEXT("[a]") PURPLE_TEXT ("kinator game, ")
+               BLUE_TEXT ("[d]") PURPLE_TEXT ("efinition, ")
+               BLUE_TEXT ("[c]") PURPLE_TEXT ("omparison, ")
+               BLUE_TEXT ("[q]") PURPLE_TEXT ("uit and write to database, ")
+               BLUE_TEXT ("[S]") PURPLE_TEXT ("top\n\n"));
 
         int aswer_for_mode = getchar ();
         clean_buffer ();
@@ -73,20 +75,38 @@ int select_mode (struct Node* node)
         {
             case 'a':
             {
-                guesse_word(node); // akinator_game (node)
+                akinator_game (node);
                 break;
             }
 
             case 'd':
             {
-                find_object (node, "Yuri_Dmitrievich"); // create_definition (node)
+                create_definition (node);
                 break;
             }
 
             case 'c':
             {
-                compare_definitions (node, "Yuri_Dmitrievich", "ded"); // create_comparison (node)
+                create_comparison (node);
                 break;
+            }
+
+            case 'q':
+            {
+                write_data (node);
+                break;
+            }
+
+            case 'S':
+            {
+                mode = 0;
+                break;
+            }
+
+            default:
+            {
+                printf (RED_TEXT("(%d)%s():") " case ERROR", __LINE__, __func__);
+                break; 
             }
         }
     }
@@ -128,7 +148,7 @@ void clean_buffer(void)
     while ((getchar()) != '\n') { ; }
 }
 
-struct Node* add_info(struct Node* node) 
+struct Node* add_info (struct Node* node) 
 {
     struct Node* ptr_left  = new_node("0", node);
     struct Node* ptr_right = new_node("0", node);
@@ -189,62 +209,61 @@ Node* akinator_game (struct Node* node)
     return node;
 }
 
-struct Node* guesse_word(struct Node* node) 
-{
-    char data[100]  = {};
+// struct Node* guesse_word(struct Node* node) 
+// {
+//     char data[100]  = {};
 
-    while (1) 
-    {
-        printf ("Is it %s? (yes/no)\n", node->data);
-        scanf ("%s", data);
+//     while (1) 
+//     {
+//         printf ("Is it %s? (yes/no)\n", node->data);
+//         scanf ("%s", data);
 
-        if (strcmp (data, "yes") == 0 || strcmp (data,"y") == 0) 
-        {
-            if (node->left != NULL) 
-            {
-                node = node->left;
-            } 
+//         if (strcmp (data, "yes") == 0 || strcmp (data,"y") == 0) 
+//         {
+//             if (node->left != NULL) 
+//             {
+//                 node = node->left;
+//             } 
 
-            else 
-            {
+//             else 
+//             {
 
-                printf ("\n\n");
-                printf ("\nI told you so! You are a weak lump of snot\n");
-                break;
-            }
-        } 
+//                 printf ("\n\n");
+//                 printf ("\nI told you so! You are a weak lump of snot\n");
+//                 break;
+//             }
+//         } 
 
-        else // data = no (Is it %s?)
-        {
-            if (node->right != NULL) 
-            {
-                node = node->right;
-            } 
+//         else // data = no (Is it %s?)
+//         {
+//             if (node->right != NULL) 
+//             {
+//                 node = node->right;
+//             } 
 
-            else 
-            {
-                printf("Do you want to insert a new object for %s? (yes/no)\n", node->data);
-                scanf("%s", data);
+//             else 
+//             {
+//                 printf("Do you want to insert a new object for %s? (yes/no)\n", node->data);
+//                 scanf("%s", data);
 
-                if (strcmp(data, "yes") == 0) 
-                {
-                    printf("I do not know! Let's add an object to the tree.\n");
-                    node = add_info(node);
-                    break;
-                }
+//                 if (strcmp(data, "yes") == 0) 
+//                 {
+//                     printf("I do not know! Let's add an object to the tree.\n");
+//                     node = add_info(node);
+//                     break;
+//                 }
                 
-                else 
-                {
-                    printf("I told you so! You're mistaken.\n");
-                    break;
-                }
-            }
-        }
-    }
+//                 else 
+//                 {
+//                     printf("I told you so! You're mistaken.\n");
+//                     break;
+//                 }
+//             }
+//         }
+//     }
 
-    return node;
-}
-
+//     return node;
+// }
 
 int create_definition (struct Node* node)
 {
@@ -600,20 +619,20 @@ Node* read_node (int level, struct Buffer* buffer)
         return NULL;
     }
 
-    DBG ( printf ("\n"); )
-    DBG ( INDENT; printf ("Starting read_node(). Cur = %.40s..., [%p]. buffer = [%p]\n", buffer->current,  buffer->current, buffer->buffer); )
+    DBG( printf ("\n"); )
+    DBG( INDENT; printf ("Starting read_node(). Cur = %.40s..., [%p]. buffer = [%p]\n", buffer->current,  buffer->current, buffer->buffer); )
 
     int n = -1; // TODO: название получше
     sscanf (buffer->current, " { %n", &n);
     if (n < 0) 
     { 
-        DBG ( INDENT; printf ("No '{' found. Return NULL.\n"); ) 
+        DBG( INDENT; printf ("No '{' found. Return NULL.\n"); ) 
         return NULL; 
     }
 
     buffer->current += n;
 
-    DBG ( INDENT; printf ("Got an '{'. Creating a node. Cur = %.40s..., [%p]. buffer = [%p]\n", buffer->current,  buffer->current, buffer->buffer); )
+    DBG( INDENT; printf ("Got an '{'. Creating a node. Cur = %.40s..., [%p]. buffer = [%p]\n", buffer->current,  buffer->current, buffer->buffer); )
 
     Node* node = new_node ("", NULL); // !?
     if (node == NULL)
@@ -627,7 +646,7 @@ Node* read_node (int level, struct Buffer* buffer)
     sscanf (buffer->current, " \"%n%*[^\"]%n\" %n", &bgn, &end, &n);
     if (n < 0) 
     { 
-        DBG ( INDENT; printf ("No DATA found. Return NULL.\n"); ) 
+        DBG( INDENT; printf ("No DATA found. Return NULL.\n"); ) 
         return NULL; 
     }
 
@@ -640,18 +659,18 @@ Node* read_node (int level, struct Buffer* buffer)
     *(buffer->current + end) = '\0';
     node->data = buffer->current + bgn;
 
-    DBG ( INDENT; printf ("Got a NAME: '%s'. Cur = %.40s..., [%p]. buffer = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
+    DBG( INDENT; printf ("Got a NAME: '%s'. Cur = %.40s..., [%p]. buffer = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
 
     buffer->current += n;
 
-    DBG ( INDENT; printf ("Shifted CURRENT_PTR: '%s'. Cur = %.40s..., [%p]. buffer = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
+    DBG( INDENT; printf ("Shifted CURRENT_PTR: '%s'. Cur = %.40s..., [%p]. buffer = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
 
     n = -1;
     char chr = '\0';
     sscanf (buffer->current, " %c %n", &chr, &n);
     if (n < 0) 
     { 
-        DBG ( INDENT; printf ("No ending symbol (1) found. Return NULL.\n"); ) 
+        DBG( INDENT; printf ("No ending symbol (1) found. Return NULL.\n"); ) 
         return NULL; 
     }
 
@@ -662,9 +681,9 @@ Node* read_node (int level, struct Buffer* buffer)
         return node;
     }
 
-    DBG ( INDENT; printf ("'}' NOT found. Supposing a left/right subtree. Reading left node. Cur = %.40s..., [%p]. buffer_ptr = [%p]\n", buffer->current, buffer->current, buffer->buffer); )
+    DBG( INDENT; printf ("'}' NOT found. Supposing a left/right subtree. Reading left node. Cur = %.40s..., [%p]. buffer_ptr = [%p]\n", buffer->current, buffer->current, buffer->buffer); )
 
-    DBG (printf ("\nnode->left = %p\n", node->left);)
+    DBG( printf ("\nnode->left = %p\n", node->left);)
     node->left = read_node (level + 1, buffer);
     if (node->left == NULL)
     {
@@ -674,9 +693,9 @@ Node* read_node (int level, struct Buffer* buffer)
 
     node->left->parent = node;  // передаем parent предыдущего узла 
 
-    DBG ( INDENT; printf ("\n" "LEFT subtree read. Data of left root = '%s'\n\n", node->left->data); )
+    DBG( INDENT; printf ("\n" "LEFT subtree read. Data of left root = '%s'\n\n", node->left->data); )
 
-    DBG ( printf ("Reading right node. Cur = %.40s...\n", buffer->current); )
+    DBG( printf ("Reading right node. Cur = %.40s...\n", buffer->current); )
 
     node->right = read_node (level + 1, buffer);
     if (node->right == NULL)
@@ -687,13 +706,13 @@ Node* read_node (int level, struct Buffer* buffer)
 
     node->right->parent = node; 
 
-    DBG ( INDENT; printf ("\n" "RIGHT subtree read. Data of right root = '%s'\n", node->right->data); )
+    DBG( INDENT; printf ("\n" "RIGHT subtree read. Data of right root = '%s'\n", node->right->data); )
 
     chr = '\0';
     sscanf (buffer->current, " %c %n", &chr, &n);
     if (n < 0) 
     { 
-        DBG ( INDENT; printf ("No ending symbol (2) found. Return NULL.\n"); ) 
+        DBG( INDENT; printf ("No ending symbol (2) found. Return NULL.\n"); ) 
         return NULL; 
     }
 
@@ -701,80 +720,80 @@ Node* read_node (int level, struct Buffer* buffer)
     {
         buffer->current += n;
 
-        DBG ( INDENT; printf ("Got a '}', FULL Node END (data = '%s'). Return node. Cur = %.40s..., [%p]. buffer_ptr = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
+        DBG( INDENT; printf ("Got a '}', FULL Node END (data = '%s'). Return node. Cur = %.40s..., [%p]. buffer_ptr = [%p]\n", node->data, buffer->current, buffer->current, buffer->buffer); )
 
         return node;
     }
 
-    DBG (printf ("\n\n(%d)%s(): I return %p\n\n", __LINE__, __func__, node));
+    DBG( printf ("\n\n(%d)%s(): I return %p\n\n", __LINE__, __func__, node));
 
     return node;
 }
 
-void compare_definitions(struct Node* node, const char* name1, const char* name2) 
-{
-    struct Stack path1 = {};
-    struct Stack path2 = {};
+// void compare_definitions(struct Node* node, const char* name1, const char* name2) 
+// {
+//     struct Stack path1 = {};
+//     struct Stack path2 = {};
 
-    stack_ctor (&path1, 20);
-    stack_ctor (&path2, 20);
+//     stack_ctor (&path1, 20);
+//     stack_ctor (&path2, 20);
 
-    Node* node1 = find_object (node, name1);
-    Node* node2 = find_object (node, name2);
+//     Node* node1 = find_object (node, name1);
+//     Node* node2 = find_object (node, name2);
 
-    printf("\n" GREEN_TEXT("node1") " = %p     | " LIGHT_BLUE_TEXT("node2") " = %p\n"
-                GREEN_TEXT("mane1") " = '%s' | " LIGHT_BLUE_TEXT("name2") " = '%s'" CLEAR_COLOR, 
-                node1, node2, name1, name2);
+//     printf("\n" GREEN_TEXT("node1") " = %p     | " LIGHT_BLUE_TEXT("node2") " = %p\n"
+//                 GREEN_TEXT("mane1") " = '%s' | " LIGHT_BLUE_TEXT("name2") " = '%s'" CLEAR_COLOR, 
+//                 node1, node2, name1, name2);
 
-    filling_the_stack (node, &path1);
-    stack_dump (&path1);
-    filling_the_stack (node, &path2);
-    stack_dump (&path2);
+//     filling_the_stack (node, &path1);
+//     stack_dump (&path1);
+//     filling_the_stack (node, &path2);
+//     stack_dump (&path2);
 
-    printf("\nThe general part:\n");
-    int general_part_length = 0;
+//     printf("\nThe general part:\n");
+//     int general_part_length = 0;
 
-    printf ("\npath1.size = %d | path2.size = %d\n", path1.size, path2.size);
-    int min_path_lenght = min_size_node (&path1, &path2);
-    printf ("\nmin_path_length = %d\n", min_path_lenght);
+//     printf ("\npath1.size = %d | path2.size = %d\n", path1.size, path2.size);
+//     int min_path_lenght = min_size_node (&path1, &path2);
+//     printf ("\nmin_path_length = %d\n", min_path_lenght);
 
-    for (int i = 0; i < min_path_lenght; i++) 
-    {
-        Node* num1 = look_number (&path1, i);// TODO node
-        Node* num2 = look_number (&path2, i);
+//     for (int i = 0; i < min_path_lenght; i++) 
+//     {
+//         Node* num1 = look_number (&path1, i);// TODO node
+//         Node* num2 = look_number (&path2, i);
 
-        fprintf (stderr, "\n(num1 = %p | num2 = %p) num1->data = '%s' | num2->data = '%s'\n", num1, num2, num1->data, num2->data);
+//         fprintf (stderr, "\n(num1 = %p | num2 = %p) num1->data = '%s' | num2->data = '%s'\n", num1, num2, num1->data, num2->data);
 
-        if (strcmp(num1->data, num2->data) == 0) 
-        {
-            printf ("%s ", num1->data);
-            general_part_length = i + 1;
-        } 
-        else 
-        {
-            break;
-        }
-    }
+//         if (strcmp(num1->data, num2->data) == 0) 
+//         {
+//             printf ("%s ", num1->data);
+//             general_part_length = i + 1;
+//         } 
+//         else 
+//         {
+//             break;
+//         }
+//     }
 
-    printf("\n1) The different part:\n");
-    for (int i = general_part_length; i < path1.size; i++) 
-    {
-        Node* num = look_number (&path1, i);
-        fprintf (stderr, "%s ", num->data);
-    }
+//     printf("\n1) The different part:\n");
+//     for (int i = general_part_length; i < path1.size; i++) 
+//     {
+//         Node* num = look_number (&path1, i);
+//         fprintf (stderr, "%s ", num->data);
+//     }
 
-    printf("\n2) The different part:\n");
-    for (int i = general_part_length; i < path2.size; i++) 
-    {
-        Node* num = look_number(&path2, i);
-        fprintf(stderr, "%s ", num->data);
-    }
+//     printf("\n2) The different part:\n");
+//     for (int i = general_part_length; i < path2.size; i++) 
+//     {
+//         Node* num = look_number(&path2, i);
+//         fprintf(stderr, "%s ", num->data);
+//     }
 
-    printf("\n");
+//     printf("\n");
 
-    stack_dtor(&path1);
-    stack_dtor(&path2);
-}
+//     stack_dtor(&path1);
+//     stack_dtor(&path2);
+// }
 
 Node* find_node (const char* object, struct Node* node)
 {
@@ -804,21 +823,21 @@ Node* find_node (const char* object, struct Node* node)
     return NULL;
 }
 
-void filling_the_stack (struct Node* node, struct Stack* stack) 
-{
-    printf ("\n\n>>> %s(): Starting...\n", __func__);
+// void filling_the_stack (struct Node* node, struct Stack* stack) 
+// {
+//     printf ("\n\n>>> %s(): Starting...\n", __func__);
 
-    while (node != NULL) 
-    {
-        printf ("\n<parent = %p | data = '%s'>\n", node->parent, node->data);
+//     while (node != NULL) 
+//     {
+//         printf ("\n<parent = %p | data = '%s'>\n", node->parent, node->data);
 
-        stack_push (stack, node);
+//         stack_push (stack, node);
         
-        node = node->parent;
-    } 
+//         node = node->parent;
+//     } 
 
-    printf ("\n<<< %s(): End\n\n", __func__);
-}
+//     printf ("\n<<< %s(): End\n\n", __func__);
+// }
 
 void stack_dump (struct Stack* stack) 
 {
@@ -858,200 +877,16 @@ void stack_dump (struct Stack* stack)
     }
 }
 
-int min_size_node (struct Stack* path1, struct Stack* path2)
-{
-    assert (path1);
-    assert (path2);
-
-    int size1 = path1->size;
-    int size2 = path2->size;
-
-    return (size1 < size2) ? size1 : size2;
-}
-
-// определение 
-Node* find_object (struct Node* node, const char* search) // TODO: сделать, чтобы пользователь вводил кого надо найти, а не параметром 
-{
-    if (node == NULL)
-        return 0;
-
-    struct Stack stack = {};
-
-    stack_ctor (&stack, 20);
-
-    printf (PURPLE_TEXT(">>> %s():")"strcmp (%s, %s)...\n", __func__, node->data, search);
-
-    if (strcmp (node->data, search) == 0)
-    {
-        printf (GREEN_TEXT(">>> %s():")"strcmp (...) == 0 !!!\n", __func__);
-     
-        find_nodes (node, &stack, search);
-
-        return node;
-    }
-
-    else
-    {
-        printf (RED_TEXT(">>> %s():")"strcmp (...) != 0\n", __func__);
-
-        printf ("\nmeet %s but this is not %s\n", node->data, search);
-    }
-
-    Node* found_left = find_object (node->left, search);
-    if (found_left != NULL)
-        return node;
-
-    Node* found_right = find_object (node->right, search);
-    if (found_right != NULL)
-        return node;
-
-    //stack_dump (&stack);
-
-    stack_dtor (&stack);
-
-    return NULL;
-}
-// TODO print_descrition 
-Node* find_nodes (struct Node* node, struct Stack* stack, const char* search)
-{
-    assert (node);
-           //Node* reverse [20] = {};
-    // struct Stack stack = {};
-
-    // stack_ctor (&stack, 20);
-
-    printf ("\nI'm find '%s'\n", search);
-
-    Node* cur_node = node;
-
-    int count = 0; 
-    while (cur_node != NULL) // хождение по parent 
-    {
-        assert (count < 20);
-        //reverse[count] = cur_node;
-        count++;
-
-        stack_push (stack, cur_node); 
-        cur_node = cur_node->parent;
-    }
-
-    printf ("\ncount = %d\n", count);
-    for (int i = count - 1; i >= 1; i--) // - 1 / + 1
-    {
-        //fprintf (stderr, "\ni = %d reverse[i] = %p reverse[i]->parent = %p", i, reverse[i], reverse[i]->parent);
-        Node* num   = look_number (stack, i);
-        Node* num_1 = look_number (stack, i - 1);
-
-        //fprintf (stderr, "\ni =%d| num = %p(%s), num_1 = %p(%s) , \n", i, num, num->data,num_1, num_1->data);
-
-        if (num   != NULL &&
-            num_1 != NULL &&
-            num->right == num_1)
-        {
-            fprintf (stderr, "NOT");
-        }
-
-        // if (reverse[i]     != NULL &&  
-        //     reverse[i - 1] != NULL && 
-        //     reverse[i]->right == reverse[i - 1])
-        // {
-        //     fprintf (stderr, "not ");
-        // }
-        
-        fprintf (stderr, "'%s\n\n'", num->data);
-        //fprintf (stderr,"'%s'\n", reverse[i]->data);
-
-    } 
-
-    return node;
-}
-
-//вставка нового элемента в  дерево  
-// Node* insert_node (struct Node* node) 
+// int min_size_node (struct Stack* path1, struct Stack* path2)
 // {
-//     Node* root = node;
+//     assert (path1);
+//     assert (path2);
 
-//     char data[100] = "";
+//     int size1 = path1->size;
+//     int size2 = path2->size;
 
-//     printf ("\nAnd who is this\n");
-//     scanf ("%s ", data);
-
-//     while (1)
-//     {
-//         if (data < node->data)
-//         {
-//             if (node->left != NULL)
-//             {
-//                 printf ("\nIt is %s\n", data);
-
-//                 node = node->left;
-//                 graph_dump (root, node);
-//             }
-
-//             else // if (node->left == NULL)
-//             {
-//                 printf ("\nAnd who is this\n");
-//                 scanf ("%s ", data);
-
-//                 node->left = new_node (data, );
-//                 break;
-//             }
-//         }
-
-//         else
-//         {
-//             if (node->right != NULL)
-//             {
-//                 printf ("\nIt is %s\n", data);
-
-//                 node = node->right;
-
-//                 graph_dump (root, node);
-            
-//             }
-//             else // if (node->right == NULL)
-//             {
-//                 printf ("\nAnd who is this\n");
-//                 scanf ("%s ", data);
-
-//                 node->right = new_node (data);
-//                 break;
-//             }
-//         }
-//     }   
-    
-//     return node;
+//     return (size1 < size2) ? size1 : size2;
 // }
-
-// Обход в порядке Inorder
-void inorder (struct Node* node) 
-{
-    if (node == NULL) 
-        return;
-
-    printf (" ( ");
-
-    if (node->left) inorder (node->left);
-
-    printf ("%s", node->data);
-
-    if (node->right) inorder (node->right);
-
-    printf (" ) ");
-}
-
-// Обход в порядке Postorder
-void postorder(struct Node* node) 
-{
-    if (node == NULL) 
-        return;
-
-    printf (" ) ");
-
-    if (node->left)  postorder (node->left);
-
-    if (node->right) postorder (node->right);
-}
 
 int graph_dump (struct Node* node, struct Node* selection) // TODO: сделать да/нет и покрасить детей в другой цвет 
 {
@@ -1081,7 +916,7 @@ int graph_dump (struct Node* node, struct Node* selection) // TODO: сделат
     return 0;
 }
 
-// Обход в порядке Preorder
+//Обход в порядке Preorder
 void preorder (struct Node* node, FILE* graph_dump, struct Node* selection) 
 {
     if (node == NULL)
@@ -1134,9 +969,7 @@ void tree_dtor(struct Node* node)
     tree_dtor (node->right);
     
     if (node->data != NULL) 
-    {
         free((void*)node->data); 
-    }
 
     node->data = NULL;
     
