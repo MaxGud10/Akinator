@@ -2,10 +2,7 @@
 
 typedef int Node_t;
 
-// struct Tree
-// {
-//     Node_t* root;
-// };
+
 
 struct Node
 {
@@ -40,12 +37,12 @@ int    print_definition          (struct Node* node, struct Stack* stack);
 void   print_stack_nodes_reverse (struct Stack* stack);
 
 /*==========/comparation/======================================*/
-// int   create_comparison        (struct Node* node);
-// Node* find_node                (const char* object, struct Node* node);
-// void  print_comparison         (struct Node* node_1, struct Node* node_2, struct Stack* stack_1, struct Stack* stack_2);
-// void  push_to_stack_until_root (struct Stack* stack, struct Node* node);
-// void  compare_and_print        (struct Stack* stack_1, struct Stack* stack_2, struct Node* node_1_old, struct Node* node_2_old);
-// void  do_print_definition      (struct Stack* stack); // void   print_stack_nodes_reverse (struct Stack* stack);
+int   create_comparison        (struct Node* node);
+Node* find_node                (const char* object, struct Node* node);
+void  print_comparison         (struct Node* node_1, struct Node* node_2, struct Stack* stack_1, struct Stack* stack_2);
+void  push_to_stack_until_root (struct Stack* stack, struct Node* node);
+void  compare_and_print        (struct Stack* stack_1, struct Stack* stack_2, struct Node* node_1_old, struct Node* node_2_old);
+void  do_print_definition      (struct Stack* stack); // void   print_stack_nodes_reverse (struct Stack* stack);
 
 /*==========/reader/===========================================*/
 Node* read_data (FILE* baza, struct Buffer* buffer);

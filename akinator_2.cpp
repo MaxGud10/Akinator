@@ -19,6 +19,22 @@
     #define DBG(...)
 #endif
 
+#define CHECK_NODE_1(node)                                            \
+    if ((node) == NULL)                                               \
+    {                                                                 \
+        printf (RED_TEXT("(%d)%s(): ") "ERROR: node == NULL\n",       \
+                __LINE__, __func__);                                  \
+        return -1;                                                    \
+    }
+
+#define CHECK_STACK_1(stack)                                          \
+    if ((stack) == NULL)                                              \
+    {                                                                 \
+        printf (RED_TEXT("(%d)%s(): ") "ERROR: stack == NULL\n",      \
+                __LINE__, __func__);                                  \
+        return -1;                                                    \
+    }
+
 int main (void)
 {
     struct Stack stack = {};
@@ -58,11 +74,12 @@ int main (void)
 // функция для выбора режима акинатора 
 int select_mode (struct Node* node)
 {
-    if (node == NULL)
-    {
-        printf (RED_TEXT("\n(%d)%s(): ") "ERROR: node == NULL\n", __LINE__, __func__);
-        return -1;
-    }
+    CHECK_NODE_1(node);
+    // if (node == NULL)
+    // {
+    //     printf (RED_TEXT("\n(%d)%s(): ") "ERROR: node == NULL\n", __LINE__, __func__);
+    //     return -1;
+    // }
 
     int mode = 1;
     while (mode)
@@ -93,7 +110,7 @@ int select_mode (struct Node* node)
 
             case 'c':
             {
-                //create_comparison (node);
+                create_comparison (node);
                 break;
             }
 
@@ -134,11 +151,11 @@ Node* new_node (const char* data, Node* parent)
     {
         node->data = strdup (data);
         node->shoot_free = 1;
-        printf (">>> %s(): node->data calloc'd = %p\n", __func__, node->data);
+        DBG( printf (">>> %s(): node->data calloc'd = %p\n", __func__, node->data));
 
         if (node->data == NULL) 
         {
-            printf("\n%s(): Error duplicating data \n", __func__);
+            DBG( printf("\n%s(): Error duplicating data \n", __func__));
             free(node); 
             return NULL;
         }
@@ -290,11 +307,13 @@ Node* add_info (struct Node* node)
 
 int create_definition (struct Node* node) // TODO: заменить node на root 
 {
-    if (node == NULL)
-    {
-        printf (RED_TEXT("(%d)%s(): ") "ERROR: node == NULL\n", __LINE__, __func__);
-        return -1;
-    }
+    CHECK_NODE_1(node);
+
+    // if (node == NULL)
+    // {
+    //     printf (RED_TEXT("(%d)%s(): ") "ERROR: node == NULL\n", __LINE__, __func__);
+    //     return -1;
+    // }
 
     char* object = NULL;
     size_t size_max = 0;
@@ -388,11 +407,12 @@ Node* find_node (const char* object, struct Node* node)
 
 int print_definition (struct Node* node, struct Stack* stack)
 {
-    if (node == NULL)
-    {
-        printf (RED_TEXT("(%d)%s(): ") "ERROR: node == NULL\n", __LINE__, __func__);
-        return -1;
-    }
+    CHECK_NODE_1(node);
+    // if (node == NULL)
+    // {
+    //     printf (RED_TEXT("(%d)%s(): ") "ERROR: node == NULL\n", __LINE__, __func__);
+    //     return -1;
+    // }
 
     if (stack == NULL)
     {
@@ -478,7 +498,181 @@ void print_stack_nodes_reverse (struct Stack* stack)
     stack_dtor (stack);
 }
 
+int create_comparison (struct Node* node)
+{
+    CHECK_NODE_1(node);
 
+    // if (node == NULL)
+    // {
+    //     printf (RED_TEXT("(%d)%s(): ") "ERROR: node == NULL\n", __LINE__, __func__);
+    //     return -1;
+    // }
+
+    char* object_1 = NULL;
+    char* object_2 = NULL;
+    size_t size_max = 0;
+
+    printf (LIGHT_BLUE_TEXT("enter the first object: "));
+    my_getline (&object_1, &size_max, stdin);
+
+    size_t size_1 = strlen (object_1); //FIXME - input processing
+    assert (size_1); //FIXME
+
+    if (object_1[size_1 - 1] == '\n')
+        object_1[size_1 - 1] =  '\0';
+
+    struct Node* node_1 = find_node (object_1, node);
+    if (node_1 == NULL)
+    {
+        printf ("\n" "'%s' -- no such node exists, " GREEN_TEXT("try another one") " or " GREEN_TEXT("add your own object.") "\n\n", object_1);
+        free (object_1);
+        return 1;
+    }
+
+    printf (LIGHT_BLUE_TEXT("enter the second object: "));
+    my_getline (&object_2, &size_max, stdin);
+
+    size_t size_2 = strlen (object_2); //FIXME - input processing
+    assert (size_2);
+
+    if (object_2[size_2 - 1] == '\n')
+        object_2[size_2 - 1] =  '\0';
+
+    struct Node* node_2 = find_node (object_2, node);
+    if (node_2 == NULL)
+    {
+        printf ("\n" "'%s' -- no such node exists, " GREEN_TEXT("try another one") " or " GREEN_TEXT("add your own object.") "\n\n", object_2);
+        free (object_2);
+        return 1;
+    }
+
+    struct Stack stack_1 = {}; stack_ctor (&stack_1, 10);
+    struct Stack stack_2 = {}; stack_ctor (&stack_2, 10);
+
+    print_comparison (node_1, node_2, &stack_1, &stack_2);
+
+    free (object_1);
+    free (object_2);
+
+    return 0;
+}
+
+void print_comparison (struct Node* node_1, struct Node* node_2, struct Stack* stack_1, struct Stack* stack_2)
+{
+    if (node_1 == NULL)
+    {
+        printf (RED_TEXT("(%d)%s(): ") "ERROR: node_1 == NULL\n", __LINE__, __func__);
+        return;
+    }
+
+    if (node_2 == NULL)
+    {
+        printf (RED_TEXT("(%d)%s(): ") "ERROR: node_2 == NULL\n", __LINE__, __func__);
+        return;
+    }
+
+    if (stack_1 == NULL)
+    {
+        printf (RED_TEXT("(%d)%s(): ") "ERROR: stack_1 == NULL\n", __LINE__, __func__);
+        return;
+    }
+
+    if (stack_2 == NULL)
+    {
+        printf (RED_TEXT("(%d)%s(): ") "ERROR: stack_2 == NULL\n", __LINE__, __func__);
+        return;
+    }
+
+    fprintf (stderr, "\n\n" GREEN_TEXT("%s") PURPLE_TEXT(" and ") GREEN_TEXT("%s") PURPLE_TEXT(" are ") PURPLE_TEXT("BOTH: "),
+             node_1->data, node_2->data);
+
+    struct Node* node_1_old = node_1;
+    struct Node* node_2_old = node_2;
+
+    push_to_stack_until_root (stack_1, node_1); 
+    push_to_stack_until_root (stack_2, node_2);
+
+    compare_and_print(stack_1, stack_2, node_1, node_2);
+
+    stack_dtor (stack_1);
+    stack_dtor (stack_2);
+}
+
+void push_to_stack_until_root(struct Stack* stack, struct Node* node) 
+{
+    if (stack == NULL)
+    {
+        printf (RED_TEXT("(%d)%s(): ") "ERROR: stack == NULL\n", __LINE__, __func__);
+        return;
+    }
+
+    if (node == NULL)
+    {
+        printf (RED_TEXT("(%d)%s(): ") "ERROR: node == NULL\n", __LINE__, __func__);
+        return;
+    }
+
+    while (node) 
+    {
+        stack_push(stack, node);
+        node = node->parent;
+
+        if (node->parent == NULL)
+            break;
+    }
+
+    stack_push (stack, node);
+}
+
+void compare_and_print (struct Stack* stack_1, struct Stack* stack_2, struct Node* node_1_old, struct Node* node_2_old)
+{
+    int size_1 = stack_1->size - 1;
+    int size_2 = stack_2->size - 1;
+
+    struct Node* node_1_curr = NULL;
+    struct Node* node_1_prev = NULL;
+    struct Node* node_2_curr = NULL;
+    struct Node* node_2_prev = NULL;
+
+    while (true)
+    {
+        node_1_curr = look_number (stack_1, size_1);
+        node_1_prev = look_number (stack_1, size_1 - 1);
+        node_2_curr = look_number (stack_2, size_2);
+        node_2_prev = look_number (stack_2, size_2 - 1);
+
+
+        if ((stack_1->data[size_1] == stack_2->data[size_2]) && (node_1_prev == node_2_prev))
+        {
+            if (node_1_curr->right == node_1_prev && node_2_curr->right == node_2_prev)
+                fprintf (stderr, YELLOW_TEXT("not a "));
+
+            Stack_Elem_t x1 = stack_pop (stack_1);
+            Stack_Elem_t x2 = stack_pop (stack_2);
+            // stack_pop (stack_1, &x);
+            // stack_pop (stack_2, &x);
+
+            fprintf (stderr, YELLOW_TEXT("%s; "), node_1_curr->data);
+
+            --size_1;
+            --size_2;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    fprintf (stderr, PURPLE_TEXT("But "));
+    fprintf (stderr, GREEN_TEXT("%s")YELLOW_TEXT(" is "), node_1_old->data);
+    print_stack_nodes_reverse (stack_1);
+
+    fprintf (stderr, PURPLE_TEXT("And "));
+    fprintf (stderr, GREEN_TEXT("%s")YELLOW_TEXT(" is "), node_2_old->data);
+    print_stack_nodes_reverse (stack_2);
+
+    fprintf (stderr, "\n\n");
+}
 
 int write_data (struct Node* node)
 {
@@ -821,7 +1015,7 @@ void tree_dtor(struct Node* node)
         return;
     }
 
-    printf (">>> %s(): destructing %p (data = '%s', should_free = %d)...\n", __func__, node, node->data, node->shoot_free);
+    DBG( printf (">>> %s(): destructing %p (data = '%s', should_free = %d)...\n", __func__, node, node->data, node->shoot_free));
 
     node->parent = NULL;
 
@@ -830,7 +1024,7 @@ void tree_dtor(struct Node* node)
     
     if (node->shoot_free == 1)
     {
-        printf (">>> %s(): node->data free'd = %p\n", __func__, node->data);
+        DBG( printf (">>> %s(): node->data free'd = %p\n", __func__, node->data));
         
         free ((void*) node->data); 
         node->data = NULL;
@@ -850,7 +1044,7 @@ int buffer_dtor (struct Buffer* buffer)
 
     buffer->current = NULL;
 
-    printf (">>> %s(): buffer->buffer free'd = %p\n", __func__, buffer->buffer);
+    DBG( printf (">>> %s(): buffer->buffer free'd = %p\n", __func__, buffer->buffer));
 
     free (buffer->buffer);
     buffer->buffer = NULL;
